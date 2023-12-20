@@ -1,0 +1,734 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "ETicketing System Documentation",
+    "version": "1.0.0",
+    "description": "ETicketing System APIs"
+  },
+  "tags": [
+    {
+      "name": "User",
+      "description": "Endpoints for regular users"
+    },
+    {
+      "name": "Agent",
+      "description": "Endpoints for agents"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "cookieAuth": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "vertx-web.session"
+      }
+    },
+    "schemas": {
+      "LoginData": {
+        "type": "object",
+        "properties": {
+          "phoneNumber": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          }
+        },
+        "required": ["phoneNumber", "password"]
+      },
+      "AgentSignUpData": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "phoneNumber": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          },
+          "confirmPassword": {
+            "type": "string"
+          },
+          "gender": {
+            "type": "string"
+          },
+          "nin": {
+            "type": "string"
+          }
+        },
+        "required": ["name", "phoneNumber", "email", "password", "confirmPassword", "gender", "nin"]
+      },
+      "UserSignUpData": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "phoneNumber": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          },
+          "confirmPassword": {
+            "type": "string"
+          },
+          "gender": {
+            "type": "string"
+          },
+          "nin": {
+            "type": "string"
+          },
+          "vehicleType": {
+            "type": "string"
+          },
+          "manufacturer": {
+            "type": "string"
+          },
+          "plateNumber": {
+            "type": "string"
+          }
+        },
+        "required": ["name", "phoneNumber", "email", "password", "confirmPassword", "gender", "nin", "vehicleType", "manufacturer", "plateNumber"]
+      },
+      "PaymentRequest": {
+        "type": "object",
+        "properties": {
+          "phoneNumber": {
+            "type": "string"
+          },
+          "plateNumber": {
+            "type": "string"
+          },
+          "service": {
+            "type": "string"
+          },
+          "park": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "plan": {
+            "type": "string"
+          }
+        },
+        "required": ["phoneNumber", "plateNumber", "service", "park", "amount", "plan"]
+      }
+    }
+  },
+  "security": [
+    {
+      "cookieAuth": ["user"]
+    },
+    {
+      "cookieAuth": ["agent"]
+    }
+  ],
+  "paths": {
+    "/user-login": {
+      "post": {
+        "summary": "User Login",
+        "tags": ["User"],
+        "security": [
+          {
+            "cookieAuth": ["user"]
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginData"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login Successful",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Login Successful",
+                  "vertx-web.session": "session-id",
+                  "roles": "user"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "example": {
+                  "Unauthorised!": "Incorrect Phonenumber or password"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/user-signup": {
+      "post": {
+        "summary": "User Signup",
+        "tags": ["User"],
+        "security": [
+          {
+            "cookieAuth": ["user"]
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserSignUpData"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Signup Successful",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Signup Successful"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "example": {
+                  "Oops!": "Password does not match"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/user-signup-verification": {
+      "post": {
+        "summary": "User Signup Verification",
+        "tags": ["User"],
+        "security": [
+          {
+            "cookieAuth": ["user"]
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "otp": {
+                    "type": "string"
+                  }
+                },
+                "required": ["otp"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OTP Verified",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "OTP verified successfully"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Invalid OTP"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/user/profile/{phonenumber}": {
+      "get": {
+        "summary": "Get User Profile",
+        "tags": ["User"],
+        "parameters": [
+          {
+            "name": "phonenumber",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "cookieAuth": ["user"]
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Profile Found",
+            "content": {
+              "application/json": {
+                "example": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "User profile not found"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/user/generate-qr-code2/{phoneNumber}": {
+      "get": {
+        "summary": "Generate QR Code",
+        "tags": ["User"],
+        "parameters": [
+          {
+            "name": "phoneNumber",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "cookieAuth": ["user"]
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "QR Code Generated",
+            "content": {
+              "application/json": {
+                "example": {}
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "example": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/user/transactions/{phoneNumber}": {
+      "get": {
+        "summary": "Get User Transactions",
+        "tags": ["User"],
+        "parameters": [
+          {
+            "name": "phoneNumber",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "cookieAuth": ["user"]
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Transactions Found",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Transactions found",
+                  "data": " "
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "No transactions found",
+                  "data": []
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "example": {
+                  "Oops!!": "phonenumber required"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/user/upload-drivers-license/{phoneNumber}": {
+      "post": {
+        "summary": "Upload Driver's License",
+        "tags": ["User"],
+        "parameters": [
+          {
+            "name": "phoneNumber",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "cookieAuth": ["user"]
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "imagePath": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Upload Successful",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Drivers license url received and saved to database: imagePath"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "no image uploaded: null"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/user/payment-self/{phoneNumber}": {
+      "post": {
+        "summary": "Make payment for self",
+        "tags": ["User"],
+        "security": [
+          {
+            "cookieAuth": ["user"]
+          }
+        ],
+        "parameters": [
+          {
+            "name": "phoneNumber",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PaymentRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Payment Successful",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Payment Successful"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Invalid payment request"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/user/payment-other": {
+      "post": {
+        "summary": "Make payment for others",
+        "tags": ["User"],
+        "security": [
+          {
+            "cookieAuth": ["user"]
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PaymentRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Payment Successful",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Payment Successful"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Invalid payment request"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "/agent-login": {
+      "post": {
+        "summary": "Agent Login",
+        "tags": ["Agent"],
+        "security": [
+          {
+            "cookieAuth": ["agent"]
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginData"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login Successful",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Login Successful",
+                  "vertx-web.session": "session-id",
+                  "roles": "agent"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "example": {
+                  "Unauthorised!": "Incorrect Phonenumber or password"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/agent-signup": {
+      "post": {
+        "summary": "Agent Signup",
+        "tags": ["Agent"],
+        "security": [
+          {
+            "cookieAuth": ["agent"]
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AgentSignUpData"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Signup Successful",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Signup Successful"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "example": {
+                  "Oops!": "Password does not match"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/agent-signup-verification": {
+      "post": {
+        "summary": "Agent Signup Verification",
+        "tags": ["Agent"],
+        "security": [
+          {
+            "cookieAuth": ["agent"]
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "otp": {
+                    "type": "string"
+                  }
+                },
+                "required": ["otp"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OTP Verified",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "OTP verified successfully"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Invalid OTP"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/regenerate-agent-otp/{phoneNumber}": {
+      "get": {
+        "summary": "Regenerate Agent OTP",
+        "tags": ["Agent"],
+        "parameters": [
+          {
+            "name": "phoneNumber",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "cookieAuth": ["agent"]
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OTP Regenerated",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "OTP regenerated successfully"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Failed to regenerate OTP"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
